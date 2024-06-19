@@ -22,20 +22,28 @@ def to_camel(string: str) -> str:
     )
 
 
-class RecordCategory(enum.Enum):
+class BaseModel(pydantic.BaseModel):
+    """base model for config"""
+
+    model_config = pydantic.ConfigDict(
+        alies_generator=to_camel,
+        allow_population_by_field_name=True,
+        use_enum_values=True,
+    )
+
+
+class RecordCategory(enum.StrEnum):
     """record category"""
 
-    RECORD = "record"
-    TEMPLATE = "template"
-    INFORMATION = "information"
-    REMARK = "remark"
+    RECORD = "RECORD"
+    TEMPLATE = "TEMPLATE"
+    INFORMATION = "INFORMATION"
+    REMARK = "REMARK"
 
 
 # For master table
-class TableInfo(pydantic.BaseModel):
+class TableInfo(BaseModel):
     """schema for table information"""
-
-    model_config = pydantic.ConfigDict(alies_generator=to_camel)
 
     id: str = Field(default_factory=str(uuid.uuid4()))
     table_name: str
@@ -48,31 +56,47 @@ class TableInfo(pydantic.BaseModel):
     )
 
 
-class UserInfo(pydantic.BaseModel):
-    """schema for user information"""
+class UserInfo(BaseModel):
+    """Schema for user information, main schema for master table
 
-    model_config = pydantic.ConfigDict(alies_generator=to_camel)
+    Attributes:
+        id (str): user id, partition key for dynamo db
+        username (str): user name
+        email (str): user email, optional
+        created_at (datetime.datetime): user created time
+        table (list[TableInfo]): list of table information
+    """
 
     id: str = Field(default_factory=str(uuid.uuid4()))
     username: str
     email: str = ""
-    created_at: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
+    created_at: datetime.datetime = Field(
+        default_factory=datetime.datetime.now(datetime.UTC)
+    )
+    independent_table: bool = False
     table: list[TableInfo] = []
 
 
 # For record table
-class Record(pydantic.BaseModel):
-    """schema for record"""
+class Record(BaseModel):
+    """Schema for record items, main schema for record table
 
-    model_config = pydantic.ConfigDict(alies_generator=to_camel, extra="allow")
+    Attributes:
+        id (str): uuid for record, partition key for dynamo db
+        table_id (str): table id, sort key for dynamo db
+        category (RecordCategory): record category
+        record_created_at (datetime.datetime): record created time
+        record_updated_at (datetime.datetime): record updated time
+        record (dict): record content in json format
+    """
 
     id: str = Field(default_factory=str(uuid.uuid4()))
     table_id: str
-    category: str
-    record_created_at: datetime.datetime = Field(
+    category: RecordCategory
+    record_created_at: pydantic.AwareDatetime = Field(
         default_factory=datetime.datetime.now(datetime.UTC)
     )
-    record_updated_at: datetime.datetime = Field(
+    record_updated_at: pydantic.AwareDatetime = Field(
         default_factory=datetime.datetime.now(datetime.UTC)
     )
     record: dict = {}
