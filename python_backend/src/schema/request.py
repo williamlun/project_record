@@ -1,6 +1,7 @@
 """Schema for request body"""
 
 import pydantic
+from typing import Any
 from schema import common
 
 
@@ -27,4 +28,4 @@ class FieldCondition(BaseModel):
     field: str
     field_type: common.FieldType
     operation: common.Operator
-    value: str = ""
+    value: Any = None

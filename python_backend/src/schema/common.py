@@ -27,3 +27,12 @@ class FieldType(enum.StrEnum):
     BOOLEAN = "BOOLEAN"
     LIST = "LIST"
     MAP = "MAP"
+
+
+class RecordCategory(enum.StrEnum):
+    """record category"""
+
+    RECORD = "RECORD"
+    TEMPLATE = "TEMPLATE"
+    INFORMATION = "INFORMATION"
+    REMARK = "REMARK"

@@ -69,14 +69,24 @@ class DynamoClient:
         return table
 
     @handle_client_error
-    def query(self, filter_expression, key_condition_expression, limit):
+    def query(self, filter_expression, key_condition_expression, limit, start_key):
         """query dynamo"""
         response = self.table.query(
             KeyConditionExpression=key_condition_expression,
             FilterExpression=filter_expression,
             limit=limit,
+            ExclusiveStartKey=start_key,
         )
         return response.get("Items")
+
+    def query_count(self, filter_expression, key_condition_expression):
+        """query dynamo"""
+        response = self.table.query(
+            KeyConditionExpression=key_condition_expression,
+            FilterExpression=filter_expression,
+            setSelect="COUNT",
+        )
+        return response.get("Count")
 
     @handle_client_error
     def get_by_id(self, _id):

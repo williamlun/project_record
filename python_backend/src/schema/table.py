@@ -1,11 +1,12 @@
 """schema for table related modules"""
 
 import uuid
-import enum
 import datetime
 
 import pydantic
 from pydantic import Field
+
+from schema import common
 
 ################################################
 # There are one master table in the dynamo db, which stores all user information and their table information
@@ -32,15 +33,6 @@ class BaseModel(pydantic.BaseModel):
     )
 
 
-class RecordCategory(enum.StrEnum):
-    """record category"""
-
-    RECORD = "RECORD"
-    TEMPLATE = "TEMPLATE"
-    INFORMATION = "INFORMATION"
-    REMARK = "REMARK"
-
-
 # For master table
 class TableInfo(BaseModel):
     """schema for table information"""
@@ -52,6 +44,9 @@ class TableInfo(BaseModel):
     user_read: list[str] = []  # list of user_id
     public: bool = False
     table_created_at: datetime.datetime = Field(
+        default_factory=datetime.datetime.now(datetime.UTC)
+    )
+    table_last_edit: datetime.datetime = Field(
         default_factory=datetime.datetime.now(datetime.UTC)
     )
 
@@ -92,7 +87,7 @@ class Record(BaseModel):
 
     id: str = Field(default_factory=str(uuid.uuid4()))
     table_id: str
-    category: RecordCategory
+    category: common.RecordCategory
     record_created_at: pydantic.AwareDatetime = Field(
         default_factory=datetime.datetime.now(datetime.UTC)
     )

@@ -5,7 +5,6 @@ import pydantic
 import schema
 import stores
 
-import boto3
 from boto3.dynamodb.conditions import Attr, Key
 
 
@@ -37,16 +36,13 @@ class RecordService:
         """delete record"""
         return self.db_client.delete_item(partition_key_value=record_id)
 
-    def query_record(
+    def _generate_filter_expression(
         self,
-        table_id: str,
-        category: schema.table.RecordCategory = schema.table.RecordCategory.RECORD,
+        category: schema.common.RecordCategory = schema.common.RecordCategory.RECORD,
         created_after: pydantic.AwareDatetime | None = None,
         created_before: pydantic.AwareDatetime | None = None,
         record_condition: list[schema.request.FieldCondition] | None = None,
-    ):
-        """query record"""
-        key_condition = Key("sore_key").eq(table_id)
+    ) -> str:
         filter_expressions = []
         filter_expressions.append(Attr("category").eq(category))
         if created_after & created_before:
@@ -63,31 +59,81 @@ class RecordService:
             filter_expressions.append(
                 Attr("record_created_at").lt(created_before.timestamp)
             )
-        # TODO: add value processing for different field type
-
         if record_condition:
             for field in record_condition:
+                field_name = "record." + field.field
                 if field.operation == schema.common.Operator.EQ:
-                    filter_expressions.append(Attr(field.field).eq(field.value))
+                    filter_expressions.append(Attr(field_name).eq(field.value))
                 elif field.operation == schema.common.Operator.NE:
-                    filter_expressions.append(Attr(field.field).ne(field.value))
+                    filter_expressions.append(Attr(field_name).ne(field.value))
                 elif field.operation == schema.common.Operator.GT:
-                    filter_expressions.append(Attr(field.field).gt(field.value))
+                    filter_expressions.append(Attr(field_name).gt(field.value))
                 elif field.operation == schema.common.Operator.GTE:
-                    filter_expressions.append(Attr(field.field).gte(field.value))
+                    filter_expressions.append(Attr(field_name).gte(field.value))
                 elif field.operation == schema.common.Operator.LT:
-                    filter_expressions.append(Attr(field.field).lt(field.value))
+                    filter_expressions.append(Attr(field_name).lt(field.value))
                 elif field.operation == schema.common.Operator.LTE:
-                    filter_expressions.append(Attr(field.field).lte(field.value))
+                    filter_expressions.append(Attr(field_name).lte(field.value))
                 elif field.operation == schema.common.Operator.EXISTS:
-                    filter_expressions.append(Attr(field.field).exists())
+                    filter_expressions.append(Attr(field_name).exists())
                 elif field.operation == schema.common.Operator.NOT_EXISTS:
-                    filter_expressions.append(Attr(field.field).not_exists())
+                    filter_expressions.append(Attr(field_name).not_exists())
                 elif field.operation == schema.common.Operator.CONTAINS:
-                    filter_expressions.append(Attr(field.field).contains(field.value))
+                    filter_expressions.append(Attr(field_name).contains(field.value))
                 elif field.operation == schema.common.Operator.IS_IN:
-                    filter_expressions.append(Attr(field.field).is_in(field.value))
+                    filter_expressions.append(Attr(field_name).is_in(field.value))
                 elif field.operation == schema.common.Operator.BEGINS_WITH:
-                    filter_expressions.append(
-                        Attr(field.field).begins_with(field.value)
-                    )
+                    filter_expressions.append(Attr(field_name).begins_with(field.value))
+            filter_expression = filter_expressions[0]
+            for expr in filter_expressions[1:]:
+                filter_expression = filter_expression & expr
+        return filter_expression
+
+    def get_query_result_count(
+        self,
+        table_id: str,
+        category: schema.common.RecordCategory = schema.common.RecordCategory.RECORD,
+        created_after: pydantic.AwareDatetime | None = None,
+        created_before: pydantic.AwareDatetime | None = None,
+        record_condition: list[schema.request.FieldCondition] | None = None,
+    ):
+        """get query result count"""
+        filter_expression = self._generate_filter_expression(
+            category=category,
+            created_after=created_after,
+            created_before=created_before,
+            record_condition=record_condition,
+        )
+        key_condition = Key("sort_key").eq(table_id)
+        response = self.db_client.query_count(
+            key_condition_expression=key_condition, filter_expression=filter_expression
+        )
+        return response
+
+    def query_record(
+        self,
+        table_id: str,
+        limit: int = 10,
+        category: schema.common.RecordCategory = schema.common.RecordCategory.RECORD,
+        created_after: pydantic.AwareDatetime | None = None,
+        created_before: pydantic.AwareDatetime | None = None,
+        record_condition: list[schema.request.FieldCondition] | None = None,
+        start_key: int | None = None,
+    ):
+        """query record"""
+        key_condition = Key("sort_key").eq(table_id)
+        filter_expression = self._generate_filter_expression(
+            category=category,
+            created_after=created_after,
+            created_before=created_before,
+            record_condition=record_condition,
+        )
+
+        response = self.db_client.query(
+            key_condition_expression=key_condition,
+            filter_expression=filter_expression,
+            limit=limit,
+            start_key=start_key,
+        )
+        # TODO: convert response to schema
+        return response
