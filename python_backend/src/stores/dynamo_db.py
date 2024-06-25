@@ -51,6 +51,17 @@ class DynamoClient:
                 break
         return partition_key_name
 
+    def _get_sort_key(self, table_name: str):
+        """get sort key"""
+        client = boto3.client("dynamodb")
+        table_description = client.describe_table(TableName=table_name)
+        key_schema = table_description["Table"]["KeySchema"]
+        for key in key_schema:
+            if key["KeyType"] == "RANGE":
+                sort_key_name = key["AttributeName"]
+                break
+        return sort_key_name
+
     def _create_table(self, user_id):
         """create table"""
         table = self.dynamodb.create_table(
@@ -89,9 +100,13 @@ class DynamoClient:
         return response.get("Count")
 
     @handle_client_error
-    def get_by_id(self, _id):
+    def get_by_id(self, partition_key_value: str, sort_key_value: str):
         """get item from dynamo"""
-        response = self.table.get_item(Key={"id": _id})
+        partition_key = self._get_partition_key(self.table_name)
+        sort_key = self._get_sort_key(self.table_name)
+        response = self.table.get_item(
+            Key={partition_key: partition_key_value, sort_key: sort_key_value}
+        )
         return response.get("Item")
 
     @handle_client_error

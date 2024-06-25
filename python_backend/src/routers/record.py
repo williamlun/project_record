@@ -31,7 +31,7 @@ def create_record(record: schema.table.Record):
     return response
 
 
-@router.get("table/{table_id}/record", response_model=list[schema.table.Record])
+@router.get("/table/{table_id}/record", response_model=list[schema.table.Record])
 def get_table(table_id: str):
     """Get a table of records"""
     logger.info(f"Get table: {table_id}")
@@ -41,7 +41,7 @@ def get_table(table_id: str):
     return response
 
 
-@router.get("table/{table_id}/record/query", response_model=list[schema.table.Record])
+@router.get("/table/{table_id}/record/query", response_model=list[schema.table.Record])
 def query_record(
     table_id: str,
     limit: int = 10,
@@ -65,18 +65,18 @@ def query_record(
     return response
 
 
-@router.get("/record/{record_id}", response_model=schema.table.Record)
-def get_record(record_id: str):
+@router.get("/table/{table_id}/record/{record_id}", response_model=schema.table.Record)
+def get_record(table_id: str, record_id: str):
     """Get a record"""
     logger.info(f"Get record: {record_id}")
     response = service.record.RecordService(
         "record_project_record_table"
-    ).get_record_by_id(record_id)
+    ).get_record_by_id(table_id=table_id, record_id=record_id)
     return response
 
 
-@router.put("/record/{record_id}", response_model=schema.table.Record)
-def update_record(record_id: str, record: schema.table.Record):
+@router.put("/table/{table_id}/record/{record_id}", response_model=schema.table.Record)
+def update_record(table_id: str, record_id: str, record: schema.table.Record):
     """Update a record"""
     logger.info(f"Update record: {record_id}")
     response = service.record.RecordService(
@@ -85,8 +85,8 @@ def update_record(record_id: str, record: schema.table.Record):
     return response
 
 
-@router.delete("/record/{record_id}")
-def delete_record(record_id: str):
+@router.delete("/table/{table_id}/record/{record_id}")
+def delete_record(table_id: str, record_id: str):
     """Delete a record"""
     logger.info(f"Delete record: {record_id}")
     response = service.record.RecordService(

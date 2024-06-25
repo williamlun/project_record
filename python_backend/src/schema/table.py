@@ -28,7 +28,7 @@ class BaseModel(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(
         alies_generator=to_camel,
-        allow_population_by_field_name=True,
+        populate_by_name=True,
         use_enum_values=True,
     )
 
@@ -37,18 +37,14 @@ class BaseModel(pydantic.BaseModel):
 class TableInfo(BaseModel):
     """schema for table information"""
 
-    id: str = Field(default_factory=str(uuid.uuid4()))
+    id: str = str(uuid.uuid4())
     table_name: str
     table_owner: str
     user_edit: list[str] = []  # list of user_id
     user_read: list[str] = []  # list of user_id
     public: bool = False
-    table_created_at: datetime.datetime = Field(
-        default_factory=datetime.datetime.now(datetime.UTC)
-    )
-    table_last_edit: datetime.datetime = Field(
-        default_factory=datetime.datetime.now(datetime.UTC)
-    )
+    table_created_at: datetime.datetime = datetime.datetime.now(datetime.UTC)
+    table_last_edit: datetime.datetime = datetime.datetime.now(datetime.UTC)
 
 
 class UserInfo(BaseModel):
@@ -62,12 +58,11 @@ class UserInfo(BaseModel):
         table (list[TableInfo]): list of table information
     """
 
-    id: str = Field(default_factory=str(uuid.uuid4()))
+    id: str = str(uuid.uuid4())
     username: str
     email: str = ""
-    created_at: datetime.datetime = Field(
-        default_factory=datetime.datetime.now(datetime.UTC)
-    )
+    created_at: datetime.datetime = datetime.datetime.now(datetime.UTC)
+
     independent_table: bool = False
     table: list[TableInfo] = []
 
@@ -85,13 +80,11 @@ class Record(BaseModel):
         record (dict): record content in json format
     """
 
-    id: str = Field(default_factory=str(uuid.uuid4()))
+    id: str = str(uuid.uuid4())
     table_id: str
     category: common.RecordCategory
-    record_created_at: pydantic.AwareDatetime = Field(
-        default_factory=datetime.datetime.now(datetime.UTC)
-    )
-    record_updated_at: pydantic.AwareDatetime = Field(
-        default_factory=datetime.datetime.now(datetime.UTC)
-    )
+    record_created_at: pydantic.AwareDatetime = datetime.datetime.now(datetime.UTC)
+
+    record_updated_at: pydantic.AwareDatetime = datetime.datetime.now(datetime.UTC)
+
     record: dict = {}

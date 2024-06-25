@@ -19,9 +19,12 @@ class RecordService:
         response = self.db_client.create_item(item=record.model_dump())
         return response
 
-    def get_record_by_id(self, record_id):
+    def get_record_by_id(self, table_id: str, record_id: str):
         """read record"""
-        return self.db_client.get_by_id(record_id)
+        return self.db_client.get_by_id(
+            partition_key_value=record_id,
+            sort_key_value=table_id,
+        )
 
     def update_record(self, record: schema.table.Record) -> schema.table.Record:
         """update record"""
