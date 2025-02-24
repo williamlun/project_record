@@ -3,11 +3,10 @@
 from contextlib import asynccontextmanager
 
 import fastapi
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-from loguru import logger
-
 import routers
+import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
 
 
 @asynccontextmanager
@@ -45,4 +44,4 @@ def healthiness():
 
 if __name__ == "__main__":
     logger.info("Starting fastapi server")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8888)

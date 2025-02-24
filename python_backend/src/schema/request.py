@@ -1,7 +1,8 @@
 """Schema for request body"""
 
-import pydantic
 from typing import Any
+
+import pydantic
 from schema import common
 
 
@@ -16,7 +17,7 @@ class BaseModel(pydantic.BaseModel):
     """base model for config"""
 
     model_config = pydantic.ConfigDict(
-        alies_generator=to_camel,
+        alias_generator=to_camel,
         populate_by_name=True,
         use_enum_values=True,
     )

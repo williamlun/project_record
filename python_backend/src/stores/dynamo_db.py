@@ -3,13 +3,11 @@
 import json
 
 import boto3
-from boto3 import dynamodb
-from boto3.dynamodb.conditions import Key, Attr
-from botocore.exceptions import ClientError
-
-from loguru import logger
-
 import schema
+from boto3 import dynamodb
+from boto3.dynamodb.conditions import Attr, Key
+from botocore.exceptions import ClientError
+from loguru import logger
 
 #######################
 # CRUD for master table
@@ -126,6 +124,9 @@ class DynamoClient:
         # Construct the UpdateExpression and ExpressionAttributeValues
         update_expression_parts = []
         expression_attribute_values = {}
+
+        if updates is None:
+            return
 
         for attr, value in updates.items():
             update_expression_parts.append(f"{attr} = :{attr}")

@@ -1,10 +1,10 @@
 """Record related services"""
 
 import datetime
+
 import pydantic
 import schema
 import stores
-
 from boto3.dynamodb.conditions import Attr, Key
 
 
@@ -48,7 +48,7 @@ class RecordService:
     ) -> str:
         filter_expressions = []
         filter_expressions.append(Attr("category").eq(category))
-        if created_after & created_before:
+        if created_after is not None and created_before is not None:
             filter_expressions.append(
                 Attr("record_created_at").between(
                     created_after.timestamp, created_before.timestamp

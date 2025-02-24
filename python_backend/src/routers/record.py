@@ -1,12 +1,10 @@
 """Router for record related operations"""
 
-import pydantic
-
 import fastapi
-from loguru import logger
-
+import pydantic
 import schema
 import service
+from loguru import logger
 
 router = fastapi.APIRouter()
 

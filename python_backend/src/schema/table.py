@@ -1,11 +1,10 @@
 """schema for table related modules"""
 
-import uuid
 import datetime
+import uuid
 
 import pydantic
 from pydantic import Field
-
 from schema import common
 
 ################################################
@@ -27,7 +26,7 @@ class BaseModel(pydantic.BaseModel):
     """base model for config"""
 
     model_config = pydantic.ConfigDict(
-        alies_generator=to_camel,
+        alias_generator=to_camel,
         populate_by_name=True,
         use_enum_values=True,
     )
@@ -62,7 +61,6 @@ class UserInfo(BaseModel):
     username: str
     email: str = ""
     created_at: datetime.datetime = datetime.datetime.now(datetime.UTC)
-
     independent_table: bool = False
     table: list[TableInfo] = []
 
